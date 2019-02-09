@@ -1,0 +1,16 @@
+(ns mywellness-extractor.helper)
+
+
+(defn to-unix-time
+  [yyyy-MM-dd-string hh:mm:ss-string]
+  (let [SDF (new java.text.SimpleDateFormat "yyyy-MM-dd'T'HH:mm:ss'Z'")
+        inputstr (str yyyy-MM-dd-string "T" hh:mm:ss-string "Z")]
+    (as-> (. SDF parse inputstr) $
+          (. $ getTime))))
+
+(defn timestamp
+  [UNIX-time]
+  (let [SDF (new java.text.SimpleDateFormat "yyyy-MM-dd'T'HH:mm:ss'Z'")]
+    (.format SDF (new java.util.Date UNIX-time))))
+
+(timestamp (to-unix-time "2019-01-01" "17:10:10"))
