@@ -70,12 +70,14 @@
                                                           :content [
                                                                     {:tag :TotalTimeSeconds :content [(str total-time-seconds)]}
                                                                     {:tag :DistanceMeters :content [(str distance-meters)]}
-                                                                    ;{:tag :MaximumSpeed}
+                                                                    ;{:tag :MaximumSpeed :content ["40680.0"]}
+                                                                    {:tag :Intensity    :content ["Active"]}
+                                                                    {:tag :TriggerMethod :content ["Manual"]}
                                                                     {:tag     :Track
                                                                      :content (->> samples
                                                                                    (map (fn [sample-point]
 
-                                                                                          {:tag     :TrackPoint
+                                                                                          {:tag     :Trackpoint
                                                                                            :content [
                                                                                                      {:tag :Time :content [(get sample-point :time)]}
                                                                                                      {:tag :Cadence :content [(str (get sample-point :rpm))]}
@@ -83,8 +85,8 @@
                                                                                                       :content [{:tag     :TPX
                                                                                                                  :attrs   {"xmlns" "http://www.garmin.com/xmlschemas/ActivityExtension/v2"}
                                                                                                                  :content [
-                                                                                                                           {:tag :Speed :content [(str (get sample-point :speed))]}
-                                                                                                                           {:tag :Watts :content [(str (get sample-point :power))]}
+                                                                                                                           {:tag :Speed :content [(str (/ (get sample-point :speed) 3.6))]}
+                                                                                                                           {:tag :Watts :content [(str (int (get sample-point :power)))]}
                                                                                                                            ]}]}
 
                                                                                                      ]})))}
@@ -94,5 +96,9 @@
   ;dateandtimestr
   ;date-yyyy-MM-dd
   ;(spit (str "json2tcx-" (timestamp starttime-ms) ".tcx") tcx-str)
-  tcx-map
+  ;tcx-map
+  ;(with-out-str (xml/emit tcx-map))
+  ;(xml/emit tcx-map)
+  (->> (with-out-str (xml/emit tcx-map))
+       (spit (str "json2tcx-" (timestamp starttime-ms) ".tcx")))
   )
