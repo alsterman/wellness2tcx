@@ -70,7 +70,7 @@
                                                           :content [
                                                                     {:tag :TotalTimeSeconds :content [(str total-time-seconds)]}
                                                                     {:tag :DistanceMeters :content [(str distance-meters)]}
-                                                                    ;{:tag :MaximumSpeed :content ["40680.0"]}
+                                                                    {:tag :MaximumSpeed :content [(str (reduce max (map (fn [x] (get x :speed)) samples)))]}
                                                                     {:tag :Intensity    :content ["Active"]}
                                                                     {:tag :TriggerMethod :content ["Manual"]}
                                                                     {:tag     :Track
@@ -93,12 +93,15 @@
 
                                                                     ]}]}]}]}]
   ;samples
+
   ;dateandtimestr
   ;date-yyyy-MM-dd
   ;(spit (str "json2tcx-" (timestamp starttime-ms) ".tcx") tcx-str)
   ;tcx-map
   ;(with-out-str (xml/emit tcx-map))
   ;(xml/emit tcx-map)
-  (->> (with-out-str (xml/emit tcx-map))
-       (spit (str "json2tcx-" (timestamp starttime-ms) ".tcx")))
+
+  (as-> (with-out-str (xml/emit tcx-map)) $
+       (clojure.string/replace  $ #"'" "\"")
+       (spit (str "json2tcx-" (timestamp starttime-ms) ".tcx") $))
   )
