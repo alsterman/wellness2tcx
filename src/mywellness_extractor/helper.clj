@@ -14,3 +14,9 @@
     (.format SDF (new java.util.Date UNIX-time))))
 
 (timestamp (to-unix-time "2019-01-01" "17:10:10"))
+
+(defn mean
+  [coll]
+  (/ (reduce + coll) (count coll)))
+
+(mean [1 2 3 4])

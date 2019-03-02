@@ -2,7 +2,8 @@
   (:require [clojure.data.json :as json]
             [clojure.xml :as xml]
             [mywellness-extractor.helper :refer [to-unix-time
-                                                 timestamp]]))
+                                                 timestamp
+                                                 mean]]))
 
 
 
@@ -12,15 +13,15 @@
 ;      (. SDF parse "2020-01-05T13:49:20Z")
 ;      (. $ getTime)
 ;      )
+;(defn )
 
 
-
-(let [raw-data (-> (json/read-str (slurp "input2.json"))
+(let [raw-data (-> (json/read-str (slurp "input3.json"))
                    (get "data"))
 
       date-yyyy-MM-dd (get raw-data "date")
 
-      time-hh:mm:ss "16:52:38"
+      time-hh:mm:ss "16:50:53"
 
       starttime-ms (to-unix-time date-yyyy-MM-dd time-hh:mm:ss)
 
@@ -41,6 +42,15 @@
                 (map (fn [x]
                        {:id   (get x "i")
                         :name (get-in x ["pr" "name"])})))
+
+      heart-rate-map  (let [hr-raw (get-in raw-data ["analitics" "hr"])
+                            hr-key (map (fn [x] (get x "t")) hr-raw)
+                            hr-val (map (fn [x] (get x "hr")) hr-raw)]
+                        (zipmap hr-key hr-val))
+
+      max-heart-rate  (apply max (vals heart-rate-map))
+      mean-heart-rate (int (+ (mean (vals heart-rate-map)) 0.5))
+
       samples (->> (get-in raw-data ["analitics" "samples"])
                    (map (fn [one-sample]
                           {:time  (->> (get one-sample "t")
@@ -50,8 +60,10 @@
                            :power (get-in one-sample ["vs" 0])
                            :rpm   (get-in one-sample ["vs" 1])
                            :speed (get-in one-sample ["vs" 2])
-                           :distance (get-in one-sample ["vs" 3])}
+                           :distance (get-in one-sample ["vs" 3])
+                           :hr (get heart-rate-map (get one-sample "t"))}
                           )))
+
 
       max-speed-kph (reduce max (map (fn [x] (get x :speed)) samples))
 
@@ -75,6 +87,9 @@
                                                                     {:tag :TotalTimeSeconds :content [(format "%.0f" total-time-seconds)]}
                                                                     ;{:tag :DistanceMeters :content [(str distance-meters)]}
                                                                     ;{:tag :MaximumSpeed :content [(str (* max-speed-kph 1000))]}
+                                                                    {:tag :AverageHeartRateBpm :content [(str mean-heart-rate)]}
+                                                                    {:tag :MaximumHeartRateBpm :content [(str max-heart-rate)]}
+
                                                                     {:tag :Intensity    :content ["Active"]}
                                                                     {:tag :TriggerMethod :content ["Manual"]}
                                                                     {:tag     :Track
@@ -86,6 +101,10 @@
                                                                                                      {:tag :Time :content [(get sample-point :time)]}
                                                                                                      ;{:tag :DistanceMeters :content [(format "%.1f" (get sample-point :distance))]}
                                                                                                      {:tag :Cadence :content [(format "%.0f" (get sample-point :rpm))]}
+                                                                                                     (if (nil? (get sample-point :hr))
+                                                                                                       {:tag :UselessTag}
+                                                                                                       {:tag :HeartRateBpm
+                                                                                                        :content [{:tag :Value :content [(str (get sample-point :hr))]}]})
                                                                                                      {:tag     :Extensions
                                                                                                       :content [{:tag     :TPX
                                                                                                                  :attrs   {"xmlns" "http://www.garmin.com/xmlschemas/ActivityExtension/v2"}
@@ -99,6 +118,9 @@
                                                                     ]}]}]}]}]
   ;samples
   ;raw-data
+  ;heart-rate-map
+  ;max-heart-rate
+  ;mean-heart-rate
   ;dateandtimestr
   ;date-yyyy-MM-dd
   ;(spit (str "json2tcx-" (timestamp starttime-ms) ".tcx") tcx-str)
@@ -113,3 +135,8 @@
 
   ;(map (fn [x] (get x :distance)) samples)
   )
+
+;
+;(as-> (get-in temp ["analitics" "hr"]) $
+;      (map (fn [x] {(get x "t") x}) $)
+;      (conj $))
