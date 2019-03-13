@@ -16,12 +16,12 @@
 ;(defn )
 
 
-(let [raw-data (-> (json/read-str (slurp "input3.json"))
+(let [raw-data (-> (json/read-str (slurp "input8.json"))
                    (get "data"))
 
       date-yyyy-MM-dd (get raw-data "date")
 
-      time-hh:mm:ss "16:50:53"
+      time-hh:mm:ss "16:17:00"
 
       starttime-ms (to-unix-time date-yyyy-MM-dd time-hh:mm:ss)
 
@@ -64,6 +64,28 @@
                            :hr (get heart-rate-map (get one-sample "t"))}
                           )))
 
+      samples (let [last-seen (atom -1)]
+                (map (fn [x]
+                       (if (= @last-seen (int (get x :distance)))
+                         (assoc x :distance nil)
+                         ;x
+                         (do (reset! last-seen (int (get x :distance)))
+                             ;(println (get x :distance))
+                             x))
+
+
+                       ) samples)
+
+                )
+      samples (let [distance-sum (atom 0)]
+                (map (fn [x]
+                       (as-> (get x :speed) $
+                             (/ $ 3.6)
+                             (* $ 5) ; approx 5 between every reading
+                             (swap! distance-sum (fn [x] (+ x $))))
+                       (assoc x :distance-calculated @distance-sum)
+                         )samples))
+
 
       max-speed-kph (reduce max (map (fn [x] (get x :speed)) samples))
 
@@ -85,8 +107,8 @@
                                                          {:tag     :Lap :attrs {:StartTime (timestamp starttime-ms)}
                                                           :content [
                                                                     {:tag :TotalTimeSeconds :content [(format "%.0f" total-time-seconds)]}
-                                                                    ;{:tag :DistanceMeters :content [(str distance-meters)]}
-                                                                    ;{:tag :MaximumSpeed :content [(str (* max-speed-kph 1000))]}
+                                                                    {:tag :DistanceMeters :content [(str distance-meters)]}
+                                                                    {:tag :MaximumSpeed :content [(str (* max-speed-kph 1000))]}
                                                                     {:tag :AverageHeartRateBpm :content [(str mean-heart-rate)]}
                                                                     {:tag :MaximumHeartRateBpm :content [(str max-heart-rate)]}
 
@@ -100,6 +122,9 @@
                                                                                            :content [
                                                                                                      {:tag :Time :content [(get sample-point :time)]}
                                                                                                      ;{:tag :DistanceMeters :content [(format "%.1f" (get sample-point :distance))]}
+                                                                                                     (if (nil? (get sample-point :distance-calculated))
+                                                                                                       {:tag :UselessTag}
+                                                                                                       {:tag :DistanceMeters :content [(format "%.1f" (get sample-point :distance-calculated))]})
                                                                                                      {:tag :Cadence :content [(format "%.0f" (get sample-point :rpm))]}
                                                                                                      (if (nil? (get sample-point :hr))
                                                                                                        {:tag :UselessTag}
@@ -109,7 +134,7 @@
                                                                                                       :content [{:tag     :TPX
                                                                                                                  :attrs   {"xmlns" "http://www.garmin.com/xmlschemas/ActivityExtension/v2"}
                                                                                                                  :content [
-                                                                                                                           ;{:tag :Speed :content [(format " %.1f" (/ (get sample-point :speed) 3.6))]}
+                                                                                                                           {:tag :Speed :content [(format " %.1f" (/ (get sample-point :speed) 3.6))]}
                                                                                                                            {:tag :Watts :content [(str (int (get sample-point :power)))]}
                                                                                                                            ]}]}
 
@@ -134,6 +159,33 @@
 
 
   ;(map (fn [x] (get x :distance)) samples)
+
+  ;(let [last-seen (atom -1)]
+  ;  (doseq [keyval samples]
+  ;    (if (= @last-seen (int (get keyval :distance)))
+  ;      nil
+  ;      (do (reset! last-seen (int (get keyval :distance)))
+  ;          (println (get keyval :distance))))
+  ;    )
+  ;  @last-seen
+  ;  )
+
+  ;(let [last-seen (atom -1)]
+  ;  (map (fn [x]
+  ;         (if (= @last-seen (int (get x :distance)))
+  ;           (assoc x :distance nil)
+  ;           ;x
+  ;           (do (reset! last-seen (int (get x :distance)))
+  ;               ;(println (get x :distance))
+  ;               x))
+  ;
+  ;
+  ;         ) samples)
+  ;
+  ;    )
+    ;@last-seen
+
+
   )
 
 ;
