@@ -1,12 +1,14 @@
 (ns mywellness-extractor.core
   (:require [clojure.data.json :as json]
             [clojure.xml :as xml]
-            [mywellness-extractor.construct :refer [distance-meters
+            [mywellness-extractor.construct :refer [get-date
+                                                    distance-meters
                                                     total-time-seconds
                                                     heart-rate-map
-                                                    construct-raw-samples
-
-                                                    ]]
+                                                    raw-data->samples
+                                                    add-time-stamp
+                                                    add-time-since-last
+                                                    add-distance-calculated]]
             [mywellness-extractor.helper :refer [to-unix-time
                                                  timestamp
                                                  mean]]))
@@ -14,45 +16,10 @@
 
 
 
-(defn add-time-since-last
-  [samples]
-  (let [last-seen-time (atom 0)]
-    (map (fn [one-sample]
-           (as-> @last-seen-time $
-                 (- (get one-sample :time-delta) $)
-                 (assoc one-sample :time-since-last $)
-                 (do
-                   (reset! last-seen-time (get one-sample :time-delta))
-                   $))
-           ) samples)))
-
-(defn add-time-stamp
-  [samples starttime-ms]
-  (map (fn [one-sample]
-         (->> (get one-sample :time-delta)
-              (* 1000)
-              (+ starttime-ms)
-              (timestamp)
-              (assoc one-sample :time))
-         ) samples))
-
-(defn add-distance-calculated
-  "Adds field :distance-calculated which is calculated from time-since-last and speed"
-  [samples]
-  (let [distance-sum (atom 0)]
-    (map (fn [one-sample]
-           (as-> (get one-sample :speed) $
-                 (/ $ 3.6)
-                 (* $ (get one-sample :time-since-last))
-                 (swap! distance-sum (fn [x] (+ x $))))
-           (assoc one-sample :distance-calculated @distance-sum)
-           ) samples)))
-
 (let [raw-data (-> (json/read-str (slurp "input8.json"))
                    (get "data"))
 
-      date-yyyy-MM-dd (get raw-data "date")
-
+      date-yyyy-MM-dd (get-date raw-data)
       time-hh:mm:ss "16:17:00"
 
       starttime-ms (to-unix-time date-yyyy-MM-dd time-hh:mm:ss)
@@ -62,17 +29,11 @@
       heart-rate-map (heart-rate-map raw-data)
 
 
-      desc (->> (get-in raw-data ["analitics" "descriptor"])
-                (map (fn [x]
-                       {:id   (get x "i")
-                        :name (get-in x ["pr" "name"])})))
-
-
       max-heart-rate (apply max (vals heart-rate-map))
       mean-heart-rate (int (+ (mean (vals heart-rate-map)) 0.5))
 
 
-      samples (-> (construct-raw-samples raw-data heart-rate-map)
+      samples (-> (raw-data->samples raw-data heart-rate-map)
                   (add-time-stamp starttime-ms)
                   (add-time-since-last)
                   (add-distance-calculated))
@@ -80,8 +41,7 @@
 
       max-speed-kph (reduce max (map (fn [x] (get x :speed)) samples))
 
-      tcx-map {
-               :tag     :TrainingCenterDatabase
+      tcx-map {:tag     :TrainingCenterDatabase
                :attrs   {"xsi:schemaLocation" "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2  http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd"
                          "xmlns:ns5"          "http://www.garmin.com/xmlschemas/ActivityGoals/v1"
                          "xmlns:ns3"          "http://www.garmin.com/xmlschemas/ActivityExtension/v2"
