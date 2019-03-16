@@ -97,9 +97,9 @@
         (clojure.string/replace $ #"'" "\"")                ; replace ' with " because strava.
         (clojure.string/replace $ #"<UselessTag/>\n" "")))  ; remove UselessTag
 
-(defn -main [filename starttime:-hh:mm:ss output-filename]
+(defn -main [filename starttime:hh:mm:ss output-filename]
   (println (str "Converting " filename " to tcx"))
   (as-> (read-raw-data-from-file filename) $
-        (raw-data->tcx-map $ starttime:-hh:mm:ss)
+        (raw-data->tcx-map $ starttime:hh:mm:ss)
         (tcx-map->xml-str $)
         (spit output-filename $)))
