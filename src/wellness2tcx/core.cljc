@@ -1,17 +1,18 @@
 (ns wellness2tcx.core
+  (:gen-class)
   (:require [clojure.data.json :as json]
             [clojure.xml :as xml]
             [wellness2tcx.construct :refer [get-date
-                                                    distance-meters
-                                                    total-time-seconds
-                                                    heart-rate-map
-                                                    raw-data->samples
-                                                    add-time-stamp
-                                                    add-time-since-last
-                                                    add-distance-calculated]]
+                                            distance-meters
+                                            total-time-seconds
+                                            heart-rate-map
+                                            raw-data->samples
+                                            add-time-stamp
+                                            add-time-since-last
+                                            add-distance-calculated]]
             [wellness2tcx.helper :refer [to-unix-time
-                                                 timestamp
-                                                 mean]]))
+                                         timestamp
+                                         mean]]))
 
 (defn read-raw-data-from-file
   [file-path]
@@ -66,9 +67,7 @@
                                                 {:tag :TriggerMethod :content ["Manual"]}
                                                 {:tag     :Track
                                                  :content (->> samples
-                                                               (map track-point))}]}]}]}]})
-
-  )
+                                                               (map track-point))}]}]}]}]}))
 
 (defn raw-data->tcx-map
   [raw-data starttime-hh:mm:ss]
@@ -79,9 +78,9 @@
         total-time-seconds (total-time-seconds raw-data)
 
         heart-rate-map (heart-rate-map raw-data)
-        max-heart-rate  (if (empty? heart-rate-map)
-                          nil
-                          (apply max (vals heart-rate-map)))
+        max-heart-rate (if (empty? heart-rate-map)
+                         nil
+                         (apply max (vals heart-rate-map)))
         mean-heart-rate (if (empty? heart-rate-map)
                           nil
                           (int (+ (mean (vals heart-rate-map)) 0.5)))
@@ -95,11 +94,12 @@
 (defn tcx-map->xml-str
   [tcx-map]
   (as-> (with-out-str (xml/emit tcx-map)) $
-        (clojure.string/replace $ #"'" "\"") ; replace ' with " because strava.
-        (clojure.string/replace $ #"<UselessTag/>\n" ""))) ; remove UselessTag
+        (clojure.string/replace $ #"'" "\"")                ; replace ' with " because strava.
+        (clojure.string/replace $ #"<UselessTag/>\n" "")))  ; remove UselessTag
 
-(as-> (read-raw-data-from-file "input-no-hr.json") $
-      (raw-data->tcx-map $ "16:17:00")
-      (tcx-map->xml-str $)
-      (spit (str "test.tcx") $))
-
+(defn -main [filename starttime:-hh:mm:ss output-filename]
+  (println (str "Converting " filename " to tcx"))
+  (as-> (read-raw-data-from-file filename) $
+        (raw-data->tcx-map $ starttime:-hh:mm:ss)
+        (tcx-map->xml-str $)
+        (spit output-filename $)))

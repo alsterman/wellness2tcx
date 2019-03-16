@@ -1,6 +1,5 @@
 (ns wellness2tcx.helper)
 
-
 (defn to-unix-time
   [yyyy-MM-dd-string hh:mm:ss-string]
   (let [SDF (new java.text.SimpleDateFormat "yyyy-MM-dd'T'HH:mm:ss'Z'")
