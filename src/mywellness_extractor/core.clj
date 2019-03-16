@@ -21,8 +21,7 @@
 (defn track-point
   [one-sample]
   {:tag     :Trackpoint
-   :content [
-             {:tag :Time :content [(get one-sample :time)]}
+   :content [{:tag :Time :content [(get one-sample :time)]}
              {:tag :DistanceMeters :content [(format "%.1f" (get one-sample :distance-calculated))]}
              {:tag :Cadence :content [(format "%.0f" (get one-sample :rpm))]}
              (if (nil? (get one-sample :hr))
@@ -44,10 +43,8 @@
                "xmlns:ns3"          "http://www.garmin.com/xmlschemas/ActivityExtension/v2"
                "xmlns:ns2"          "http://www.garmin.com/xmlschemas/UserProfile/v2"
                "xmlns"              "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2"
-               "xmlns:xsi"          "http://www.w3.org/2001/XMLSchema-instance"
-               }
-     :content [
-               {:tag     :Activities
+               "xmlns:xsi"          "http://www.w3.org/2001/XMLSchema-instance"}
+     :content [{:tag     :Activities
                 :content [
                           {:tag     :Activity :attrs {:Sport "Biking"}
                            :content [
@@ -57,8 +54,13 @@
                                                 {:tag :TotalTimeSeconds :content [(format "%.0f" total-time-seconds)]}
                                                 {:tag :DistanceMeters :content [(str distance-meters)]}
                                                 {:tag :MaximumSpeed :content [(str (* max-speed-kph 1000))]}
-                                                {:tag :AverageHeartRateBpm :content [(str mean-heart-rate)]}
-                                                {:tag :MaximumHeartRateBpm :content [(str max-heart-rate)]}
+
+                                                (if (nil? mean-heart-rate)
+                                                  {:tag :UselessTag}
+                                                  {:tag :AverageHeartRateBpm :content [(str mean-heart-rate)]})
+                                                (if (nil? mean-heart-rate)
+                                                  {:tag :UselessTag}
+                                                  {:tag :MaximumHeartRateBpm :content [(str max-heart-rate)]})
 
                                                 {:tag :Intensity :content ["Active"]}
                                                 {:tag :TriggerMethod :content ["Manual"]}
@@ -77,8 +79,12 @@
         total-time-seconds (total-time-seconds raw-data)
 
         heart-rate-map (heart-rate-map raw-data)
-        max-heart-rate (apply max (vals heart-rate-map))
-        mean-heart-rate (int (+ (mean (vals heart-rate-map)) 0.5))
+        max-heart-rate  (if (empty? heart-rate-map)
+                          nil
+                          (apply max (vals heart-rate-map)))
+        mean-heart-rate (if (empty? heart-rate-map)
+                          nil
+                          (int (+ (mean (vals heart-rate-map)) 0.5)))
 
         samples (-> (raw-data->samples raw-data heart-rate-map)
                     (add-time-stamp starttime-ms)
@@ -89,10 +95,10 @@
 (defn tcx-map->xml-str
   [tcx-map]
   (as-> (with-out-str (xml/emit tcx-map)) $
-        (clojure.string/replace $ #"'" "\"")))
+        (clojure.string/replace $ #"'" "\"") ; replace ' with " because strava.
+        (clojure.string/replace $ #"<UselessTag/>\n" ""))) ; remove UselessTag
 
-
-(as-> (read-raw-data-from-file "input8.json") $
+(as-> (read-raw-data-from-file "input.json") $
       (raw-data->tcx-map $ "16:17:00")
       (tcx-map->xml-str $)
       (spit (str "test.tcx") $))
