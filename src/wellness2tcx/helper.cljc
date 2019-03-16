@@ -1,4 +1,4 @@
-(ns mywellness-extractor.helper)
+(ns wellness2tcx.helper)
 
 
 (defn to-unix-time

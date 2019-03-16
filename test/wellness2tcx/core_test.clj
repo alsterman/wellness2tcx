@@ -1,6 +1,6 @@
-(ns mywellness-extractor.core-test
+(ns wellness2tcx.core-test
   (:require [clojure.test :refer :all]
-            [mywellness-extractor.core :refer :all]))
+            [wellness2tcx.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."

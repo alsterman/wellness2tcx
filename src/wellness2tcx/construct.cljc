@@ -1,5 +1,5 @@
-(ns mywellness-extractor.construct
-  (:require [mywellness-extractor.helper :refer [timestamp]]))
+(ns wellness2tcx.construct
+  (:require [wellness2tcx.helper :refer [timestamp]]))
 
 (defn get-date
   [raw-data]

@@ -1,7 +1,7 @@
-(ns mywellness-extractor.core
+(ns wellness2tcx.core
   (:require [clojure.data.json :as json]
             [clojure.xml :as xml]
-            [mywellness-extractor.construct :refer [get-date
+            [wellness2tcx.construct :refer [get-date
                                                     distance-meters
                                                     total-time-seconds
                                                     heart-rate-map
@@ -9,7 +9,7 @@
                                                     add-time-stamp
                                                     add-time-since-last
                                                     add-distance-calculated]]
-            [mywellness-extractor.helper :refer [to-unix-time
+            [wellness2tcx.helper :refer [to-unix-time
                                                  timestamp
                                                  mean]]))
 
@@ -98,7 +98,7 @@
         (clojure.string/replace $ #"'" "\"") ; replace ' with " because strava.
         (clojure.string/replace $ #"<UselessTag/>\n" ""))) ; remove UselessTag
 
-(as-> (read-raw-data-from-file "input.json") $
+(as-> (read-raw-data-from-file "input-no-hr.json") $
       (raw-data->tcx-map $ "16:17:00")
       (tcx-map->xml-str $)
       (spit (str "test.tcx") $))
