@@ -1,6 +1,6 @@
 # wellness2tcx
 
-A Clojure program to convert convert MyWellness® json training data to Training Center XML.
+A Clojure program to convert MyWellness® json training data to Training Center XML.
 
 The resulting tcx file can then be uploaded to other sites such as [stava.com](strava.com).
 
@@ -18,8 +18,17 @@ The resulting tcx file can then be uploaded to other sites such as [stava.com](s
 7. The raw data is now on the clipboard.
 8. Save it to a file.
 
+### Downloading the program
+The latest jar file can be downloaded here:
+[wellness2tcx-0.1.0-standalone.jar](https://github.com/alsterman/wellness2tcx/releases/download/v0.1.0/wellness2tcx-0.1.0-standalone.jar)
+Place the downloaded file in the same directory as the raw data file.
+
+Make sure you have Java 8 installed.
+
+
 ### Converting the data
-Running the jar
+1. Open a terminal and move to the directory where you placed the downloaded the jar file and raw data file.
+2. Run the program with the following command. Replace `readfilename` with the name of the saved file, `hh:mm:ss` with the time you started the exercise and `writefilename` with the desired save filename, ending with .tcx 
 ```
 $ java -jar wellness2tcx-0.1.0-standalone.jar readfilename hh:mm:ss writefilename
 ```
@@ -28,6 +37,8 @@ Example
 ```
 $ java -jar wellness2tcx-0.1.0-standalone.jar input-viktor.json 12:00:00 output-viktor.tcx
 ```
+
+The resulting file can be found in the folder and can be uploaded to another site such as Strava.
 ## License
 
 Copyright © 2019 Marcus Alsterman
