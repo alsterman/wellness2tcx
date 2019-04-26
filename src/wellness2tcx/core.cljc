@@ -1,5 +1,6 @@
 (ns wellness2tcx.core
-  (:require
+  (:gen-class)
+  (:require [clojure.data.json :as json]
             [clojure.xml :as xml]
             [wellness2tcx.construct :refer [get-date
                                             distance-meters
@@ -13,7 +14,10 @@
                                          timestamp
                                          mean]]))
 
-
+(defn read-raw-data-from-file
+  [file-path]
+  (-> (json/read-str (slurp file-path))
+      (get "data")))
 
 (defn track-point
   [one-sample]
@@ -93,9 +97,9 @@
         (clojure.string/replace $ #"'" "\"")                ; replace ' with " because strava.
         (clojure.string/replace $ #"<UselessTag/>\n" "")))  ; remove UselessTag
 
-;(defn -main [filename starttime:hh:mm:ss output-filename]
-;  (println (str "Converting " filename " to tcx"))
-;  (as-> (read-raw-data-from-file filename) $
-;        (raw-data->tcx-map $ starttime:hh:mm:ss)
-;        (tcx-map->xml-str $)
-;        (spit output-filename $)))
+(defn -main [filename starttime:hh:mm:ss output-filename]
+  (println (str "Converting " filename " to tcx"))
+  (as-> (read-raw-data-from-file filename) $
+        (raw-data->tcx-map $ starttime:hh:mm:ss)
+        (tcx-map->xml-str $)
+        (spit output-filename $)))
