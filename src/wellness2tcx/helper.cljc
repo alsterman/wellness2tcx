@@ -19,3 +19,20 @@
   (/ (reduce + coll) (count coll)))
 
 (mean [1 2 3 4])
+
+(defn date-string->yyyy-MM-dd
+  "Currently string input on form yyyy-MM-dd and dd/MM/yyyy"
+  [date-string]
+  {:pre [(string? date-string)
+         (= (count date-string) 10)]
+   :post [(string? %)
+          (re-matches #"....-..-.." %)]}
+  (if (re-matches #"../../...." date-string)
+    (let [dd (subs date-string 0 2)
+          MM (subs date-string 3 5)
+          yyyy (subs date-string 6)]
+      (str yyyy "-" MM "-" dd))
+    date-string))
+
+;(date-string->yyyy-MM-dd "2017-01-01")
+;(date-string->yyyy-MM-dd "30/01/2017")
