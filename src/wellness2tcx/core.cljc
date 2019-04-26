@@ -12,7 +12,8 @@
                                             add-distance-calculated]]
             [wellness2tcx.helper :refer [to-unix-time
                                          timestamp
-                                         mean]]))
+                                         mean
+                                         date-string->yyyy-MM-dd]]))
 
 (defn read-raw-data-from-file
   [file-path]
@@ -71,7 +72,8 @@
 
 (defn raw-data->tcx-map
   [raw-data starttime-hh:mm:ss]
-  (let [startdate-yyyy-MM-dd (get-date raw-data)
+  (let [startdate (get-date raw-data)
+        startdate-yyyy-MM-dd (date-string->yyyy-MM-dd startdate)
         starttime-ms (to-unix-time startdate-yyyy-MM-dd starttime-hh:mm:ss)
 
         distance-meters (distance-meters raw-data)
