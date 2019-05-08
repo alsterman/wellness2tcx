@@ -20,7 +20,7 @@ The resulting tcx file can then be uploaded to other sites such as [stava.com](s
 
 ### Downloading the program
 The latest jar file can be downloaded here:
-[wellness2tcx-0.1.0-standalone.jar](https://github.com/alsterman/wellness2tcx/releases/download/v0.1.0/wellness2tcx-0.1.0-standalone.jar)
+[wellness2tcx-0.1.1-standalone.jar](https://github.com/alsterman/wellness2tcx/releases/download/v0.1.1/wellness2tcx-0.1.1-standalone.jar)
 Place the downloaded file in the same directory as the raw data file.
 
 Make sure you have Java 8 installed.
