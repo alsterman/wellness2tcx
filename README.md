@@ -9,6 +9,8 @@ I've developed a webversion that converts the raw data in the browser.
 [https://alsterman.github.io/wellness2tcx-cljs/](https://alsterman.github.io/wellness2tcx-cljs/)
 The code runs in your browser and the data never leaves your machine.
 
+The source code is available at https://github.com/alsterman/wellness2tcx-cljs
+
 ## Usage
 
 ### Getting the raw data from [mywellness.com](mywellness.com)
